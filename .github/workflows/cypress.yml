@@ -1,10 +1,35 @@
-name: Checkout
+name: Cypress Tests
 
-on: [push]
+on: push
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-latest
+  install:
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          install: true
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          runTests: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cypress-videos
+          path: cypress/videos
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
