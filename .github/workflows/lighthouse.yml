@@ -1,28 +1,21 @@
-name: Cypress Tests Run on Pipeline
+name: LH Audits 
 on: [push]
 jobs:
-  cypress-run:
+  run_lighthouse:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false # https://github.com/cypress-io/github-action/issues/48
+    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install Cypress
-        run: npm install cypress
-      - name: Cypress run 
-        id: cypress
-        uses: cypress-io/github-action@v4
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
         with:
-          browser: chrome
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: cypress-screenshots
-          path: cypress/screenshots
-      # Test run video was always captured, so this action uses "always()" condition
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: cypress-videos
-          path: cypress/videos
+          node-version: 18
+      - name: Install Dependencies
+        run: |
+          npm install
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.13.x
+          lhci autorun --disable-network-throttling --disable-cpu-throttling
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LIGHTHOUSE_CHECK_ACCESS_TOKEN }}
